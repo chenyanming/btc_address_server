@@ -1,7 +1,7 @@
-use std::io::prelude::*;
 use chrono::Local;
 use env_logger::{Builder, Target};
 use log::LevelFilter;
+use std::io::prelude::*;
 
 /// Setup the log
 pub fn setup() {
