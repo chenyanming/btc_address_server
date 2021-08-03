@@ -1,4 +1,4 @@
-#+TITLE:   rust/btc_address_server
+#+TITLE:   btc_address_server
 #+DATE:    August 3, 2021
 #+STARTUP: inlineimages nofold
 
