@@ -1,0 +1,22 @@
+#+TITLE:   rust/btc_address_server
+#+DATE:    August 3, 2021
+#+STARTUP: inlineimages nofold
+
+* Table of Contents :TOC_3:noexport:
+- [[#description][Description]]
+- [[#features][Features]]
+- [[#configuration][Configuration]]
+- [[#license][License]]
+
+* Description
+Bitcoin address generation server
+
+* Features
+1. Generate the public key and a Hierarchical Deterministic (HD) Segregated Witness (SegWit) bitcoin address from the loaded seed and given path.
+1. Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address, where n, m and public keys can be specified
+
+* Configuration
+
+
+* License
+MIT license
