@@ -3,6 +3,8 @@ use btc_address_server::{http, log::setup};
 use tokio::task;
 
 use ring::{digest, pbkdf2};
+use ripemd160::{Digest, Ripemd160};
+use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
 use std::num::NonZeroU32;
 
 #[tokio::main]
@@ -38,6 +40,52 @@ async fn main() -> Result<()> {
 
     let master_chain_code = &pbkdf2_hash.as_ref()[32..CREDENTIAL_LEN];
     log::info!("Master Chain Code: {}", hex::encode(master_chain_code));
+
+    let secp = Secp256k1::new();
+    let secret_key =
+        SecretKey::from_slice(master_private_key).expect("32 bytes, within curve order");
+    let public_key = PublicKey::from_secret_key(&secp, &secret_key);
+    log::info!(
+        "1. Master Public Key: {}",
+        hex::encode(public_key.serialize())
+    );
+
+    let sha256 = digest::digest(&digest::SHA256, &public_key.serialize());
+    log::info!("2. SHA-256 hash of 1: {}", hex::encode(&sha256));
+
+    let mut ripemd160 = Ripemd160::new();
+    ripemd160.update(sha256);
+    let ripemd160 = ripemd160.finalize();
+    log::info!("3. RIPEMD-160 hash of 2: {}", hex::encode(&ripemd160));
+
+    let mut network = vec![];
+    network.extend_from_slice(&[0]);
+    network.extend_from_slice(&ripemd160);
+    log::info!("4. Add network byte to 3: {}", hex::encode(&network));
+
+    let sha256 = digest::digest(&digest::SHA256, &network);
+    log::info!("5. SHA-256 hash of 4: {}", hex::encode(&sha256));
+
+    let sha256 = digest::digest(&digest::SHA256, sha256.as_ref());
+    log::info!("6. SHA-256 hash of 5: {}", hex::encode(&sha256));
+
+    let first_four_bytes = &sha256.as_ref()[..4];
+    log::info!(
+        "7. First four bytes of 6: {}",
+        hex::encode(&first_four_bytes)
+    );
+
+    let mut final_result = vec![];
+    final_result.extend_from_slice(&network);
+    final_result.extend_from_slice(&first_four_bytes);
+
+    log::info!("8. Add 7 to the end of 4: {}", hex::encode(&final_result));
+
+    let address = bs58::encode(&final_result);
+    log::info!(
+        "9. Base58 encoding of 8 (aka bitcoin address): {}",
+        address.into_string()
+    );
 
     loop {}
 }
