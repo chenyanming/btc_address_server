@@ -5,7 +5,7 @@ use tokio::task;
 use bitvec::prelude::*;
 use ring::{digest, pbkdf2};
 use ripemd160::{Digest, Ripemd160};
-use secp256k1::{Message, PublicKey, Secp256k1, SecretKey};
+use secp256k1::{constants::PUBLIC_KEY_SIZE, Message, PublicKey, Secp256k1, SecretKey};
 use std::num::NonZeroU32;
 
 #[tokio::main]
@@ -21,21 +21,27 @@ async fn main() -> Result<()> {
 
     log::info!(
         "Base58 encoding of 8 (aka bitcoin address): {}",
-        generate_legacy_address()?
+        generate_legacy_address(
+            &generate_public_key(
+                "army van defense carry jealous true garbage claim echo media make crunch",
+                "mnemonic",
+            )[..]
+        )?
     );
     log::info!(
         "Bech32_encoded address consists of 3 parts: HRP + Separator + Data: {}",
-        generate_bech32_address()?
+        generate_bech32_address(&hex::decode(
+            "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+        )?)?
     );
 
     loop {}
 }
 
-fn generate_legacy_address() -> Result<String> {
+fn generate_public_key(mnemonic_words: &str, salt: &str) -> [u8; PUBLIC_KEY_SIZE] {
     // mnemonic words -> 512 bits (64 bytes) Seed
-    let mnemonic_words =
-        "army van defense carry jealous true garbage claim echo media make crunch".as_bytes();
-    let salt = "mnemonic".as_bytes();
+    let mnemonic_words = mnemonic_words.as_bytes();
+    let salt = salt.as_bytes();
     const CREDENTIAL_LEN: usize = digest::SHA512_OUTPUT_LEN;
     let n_iter = NonZeroU32::new(2_048).unwrap();
     let mut pbkdf2_hash = [0u8; CREDENTIAL_LEN];
@@ -60,11 +66,22 @@ fn generate_legacy_address() -> Result<String> {
         SecretKey::from_slice(master_private_key).expect("32 bytes, within curve order");
     let public_key = PublicKey::from_secret_key(&secp, &secret_key);
     log::info!(
-        "1. Master Public Key: {}",
-        hex::encode(public_key.serialize())
+        "1. Master Public Key: {}, len: {}",
+        hex::encode(public_key.serialize()),
+        public_key.serialize().len()
     );
+    public_key.serialize()
+}
 
-    let sha256 = digest::digest(&digest::SHA256, &public_key.serialize());
+fn generate_legacy_address(public_key: &[u8]) -> Result<String> {
+    // mnemonic words -> 512 bits (64 bytes) Seed
+    // let public_key = generate_public_key(
+    //     "army van defense carry jealous true garbage claim echo media make crunch",
+    //     "mnemonic",
+    // );
+    log::info!("1. Master Public Key: {}", hex::encode(public_key));
+
+    let sha256 = digest::digest(&digest::SHA256, &public_key);
     log::info!("2. SHA-256 hash of 1: {}", hex::encode(&sha256));
 
     let mut ripemd160 = Ripemd160::new();
@@ -99,43 +116,9 @@ fn generate_legacy_address() -> Result<String> {
     Ok(address.into_string())
 }
 
-fn generate_bech32_address() -> Result<String> {
-    // mnemonic words -> 512 bits (64 bytes) Seed
-    let mnemonic_words =
-        "army van defense carry jealous true garbage claim echo media make crunch".as_bytes();
-    let salt = "mnemonic".as_bytes();
-    const CREDENTIAL_LEN: usize = digest::SHA512_OUTPUT_LEN;
-    let n_iter = NonZeroU32::new(2_048).unwrap();
-    let mut pbkdf2_hash = [0u8; CREDENTIAL_LEN];
-    pbkdf2::derive(
-        pbkdf2::PBKDF2_HMAC_SHA512,
-        n_iter,
-        salt,
-        mnemonic_words,
-        &mut pbkdf2_hash,
-    );
-    // log::info!("Seed: {:x?}", pbkdf2_hash.as_ref());
-    log::info!("Seed: {}", hex::encode(pbkdf2_hash));
-
-    let master_private_key = &pbkdf2_hash.as_ref()[..32];
-    log::info!("Master Private Key: {}", hex::encode(master_private_key));
-
-    let master_chain_code = &pbkdf2_hash.as_ref()[32..CREDENTIAL_LEN];
-    log::info!("Master Chain Code: {}", hex::encode(master_chain_code));
-
-    let secp = Secp256k1::new();
-    let secret_key =
-        SecretKey::from_slice(master_private_key).expect("32 bytes, within curve order");
-    // let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-    // log::info!(
-    //     "1. Master Public Key: {}, len: {}",
-    //     hex::encode(public_key.serialize()),
-    //     public_key.serialize().len()
-    // );
-    // let sha256 = digest::digest(&digest::SHA256, &public_key.serialize());
-
-    let public_key =
-        hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")?;
+fn generate_bech32_address(public_key: &[u8]) -> Result<String> {
+    // let public_key =
+    //     hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")?;
     let sha256 = digest::digest(&digest::SHA256, &public_key);
 
     log::info!("2. SHA-256 hash of 1: {}", hex::encode(&sha256));
@@ -182,4 +165,35 @@ fn generate_bech32_address() -> Result<String> {
 
     let address = "bc".to_string() + &bech32::SEP.to_string() + &witness_map;
     Ok(address)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_generate_legacy_address() {
+        assert_eq!(
+            generate_legacy_address(
+                &generate_public_key(
+                    "army van defense carry jealous true garbage claim echo media make crunch",
+                    "mnemonic",
+                )[..]
+            )
+                .unwrap(),
+            "15izCzAjLZtMZChHsVrVQ1GmJ5psPRGL6C".to_string(),
+        );
+    }
+
+    #[test]
+    fn test_generate_bech32_address() {
+        assert_eq!(
+            generate_bech32_address(
+                &hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
+                    .unwrap()
+            )
+            .unwrap(),
+            "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+        );
+    }
 }

@@ -81,7 +81,7 @@ mod tests {
     #[test]
     fn test_bech32_create_checksum() {
         assert_eq!(
-            bech32_create_checksum("bc", vec![0, 1]),
+            bech32_create_checksum("bc", &vec![0, 1]),
             vec![13, 11, 10, 5, 18, 27]
         );
     }
