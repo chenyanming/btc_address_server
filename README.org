@@ -18,5 +18,9 @@ Bitcoin address generation server
 * Configuration
 Rust stable ~1.54~
 
+#+begin_src rust
+cargo run
+#+end_src
+
 * License
 MIT license
