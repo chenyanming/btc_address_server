@@ -16,7 +16,7 @@ Bitcoin address generation server
 1. Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address, where n, m and public keys can be specified
 
 * Configuration
-
+Rust stable ~1.54~
 
 * License
 MIT license
