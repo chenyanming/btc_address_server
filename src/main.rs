@@ -1,8 +1,9 @@
 use anyhow::{Context, Result};
-use btc_address_server::{bech32, http, log::setup};
+use btc_address_server::{bech32, http, log::setup, opcodes};
 use tokio::task;
 
 use bitvec::prelude::*;
+use core::convert::TryFrom;
 use ring::{digest, pbkdf2};
 use ripemd160::{Digest, Ripemd160};
 use secp256k1::{constants::PUBLIC_KEY_SIZE, Message, PublicKey, Secp256k1, SecretKey};
@@ -22,6 +23,7 @@ async fn main() -> Result<()> {
     log::info!(
         "Base58 encoding of 8 (aka bitcoin address): {}",
         generate_legacy_address(
+            0,
             &generate_public_key(
                 "army van defense carry jealous true garbage claim echo media make crunch",
                 "mnemonic",
@@ -30,9 +32,22 @@ async fn main() -> Result<()> {
     );
     log::info!(
         "Bech32_encoded address consists of 3 parts: HRP + Separator + Data: {}",
-        generate_bech32_address(&hex::decode(
+        generate_segwit_address(&hex::decode(
             "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
         )?)?
+    );
+
+    log::info!(
+        "Multisig p2sh address: {}",
+        generate_multisig_p2sh_address(
+            3,
+            3,
+            vec![
+                &hex::decode("03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730")?,
+                &hex::decode("03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9")?,
+                &hex::decode("02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd")?,
+            ]
+        )?
     );
 
     loop {}
@@ -73,7 +88,7 @@ fn generate_public_key(mnemonic_words: &str, salt: &str) -> [u8; PUBLIC_KEY_SIZE
     public_key.serialize()
 }
 
-fn generate_legacy_address(public_key: &[u8]) -> Result<String> {
+fn generate_legacy_address(version: u8, public_key: &[u8]) -> Result<String> {
     // mnemonic words -> 512 bits (64 bytes) Seed
     // let public_key = generate_public_key(
     //     "army van defense carry jealous true garbage claim echo media make crunch",
@@ -90,7 +105,7 @@ fn generate_legacy_address(public_key: &[u8]) -> Result<String> {
     log::info!("3. RIPEMD-160 hash of 2: {}", hex::encode(&ripemd160));
 
     let mut network = vec![];
-    network.extend([0]);
+    network.extend([version]);
     network.extend(ripemd160);
     log::info!("4. Add network byte to 3: {}", hex::encode(&network));
 
@@ -116,7 +131,7 @@ fn generate_legacy_address(public_key: &[u8]) -> Result<String> {
     Ok(address.into_string())
 }
 
-fn generate_bech32_address(public_key: &[u8]) -> Result<String> {
+fn generate_segwit_address(public_key: &[u8]) -> Result<String> {
     // let public_key =
     //     hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")?;
     let sha256 = digest::digest(&digest::SHA256, &public_key);
@@ -167,6 +182,21 @@ fn generate_bech32_address(public_key: &[u8]) -> Result<String> {
     Ok(address)
 }
 
+fn generate_multisig_p2sh_address(m: u8, n: u8, public_keys: Vec<&[u8]>) -> Result<String> {
+    let mut redeem_script = vec![];
+    redeem_script.extend([u8::from(opcodes::OpPushNum::try_from(m)?)]);
+    public_keys.into_iter().for_each(|key| {
+        redeem_script.push(0x21);
+        redeem_script.extend(key);
+    });
+    redeem_script.extend([u8::from(opcodes::OpPushNum::try_from(n)?)]);
+    redeem_script.push(opcodes::OP_CHECKMULTISIG);
+
+    log::info!("Redeem script: {:x?}", hex::encode(&redeem_script));
+
+    generate_legacy_address(5, &redeem_script)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,7 +210,7 @@ mod tests {
                     "mnemonic",
                 )[..]
             )
-                .unwrap(),
+            .unwrap(),
             "15izCzAjLZtMZChHsVrVQ1GmJ5psPRGL6C".to_string(),
         );
     }
@@ -188,7 +218,7 @@ mod tests {
     #[test]
     fn test_generate_bech32_address() {
         assert_eq!(
-            generate_bech32_address(
+            generate_segwit_address(
                 &hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")
                     .unwrap()
             )
