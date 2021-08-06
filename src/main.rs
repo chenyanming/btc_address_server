@@ -9,6 +9,8 @@ use ripemd160::{Digest, Ripemd160};
 use secp256k1::{constants::PUBLIC_KEY_SIZE, Message, PublicKey, Secp256k1, SecretKey};
 use std::num::NonZeroU32;
 
+use std::fs::{read_to_string, OpenOptions};
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // log
@@ -25,7 +27,7 @@ async fn main() -> Result<()> {
         generate_legacy_address(
             0,
             &generate_public_key(
-                "army van defense carry jealous true garbage claim echo media make crunch",
+                &read_seed("seed.txt").expect("Readd seed.txt error"),
                 "mnemonic",
             )[..]
         )?
@@ -197,6 +199,11 @@ fn generate_multisig_p2sh_address(m: u8, n: u8, public_keys: Vec<&[u8]>) -> Resu
     generate_legacy_address(5, &redeem_script)
 }
 
+/// read seed from `file`
+fn read_seed(file: &str) -> Result<String, std::io::Error> {
+    read_to_string(file)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -235,9 +242,18 @@ mod tests {
                 3,
                 3,
                 vec![
-                    &hex::decode("03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730").unwrap(),
-                    &hex::decode("03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9").unwrap(),
-                    &hex::decode("02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd").unwrap(),
+                    &hex::decode(
+                        "03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730"
+                    )
+                    .unwrap(),
+                    &hex::decode(
+                        "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9"
+                    )
+                    .unwrap(),
+                    &hex::decode(
+                        "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"
+                    )
+                    .unwrap(),
                 ]
             )
             .unwrap(),
