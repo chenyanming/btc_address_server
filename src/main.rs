@@ -205,6 +205,7 @@ mod tests {
     fn test_generate_legacy_address() {
         assert_eq!(
             generate_legacy_address(
+                0,
                 &generate_public_key(
                     "army van defense carry jealous true garbage claim echo media make crunch",
                     "mnemonic",
@@ -224,6 +225,23 @@ mod tests {
             )
             .unwrap(),
             "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
+        );
+    }
+
+    #[test]
+    fn test_generate_multisig_p2sh_address() {
+        assert_eq!(
+            generate_multisig_p2sh_address(
+                3,
+                3,
+                vec![
+                    &hex::decode("03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730").unwrap(),
+                    &hex::decode("03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9").unwrap(),
+                    &hex::decode("02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd").unwrap(),
+                ]
+            )
+            .unwrap(),
+            "3Bzxiixsr6ZKyJk9H5MLc52R7LZw3uzBuy".to_string(),
         );
     }
 }
