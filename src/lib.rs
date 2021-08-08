@@ -1,4 +1,5 @@
 pub mod bech32;
+pub mod error;
 pub mod http;
 pub mod log;
 pub mod opcodes;
