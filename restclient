@@ -1,0 +1,24 @@
+# -*- restclient -*-
+#
+# Gets  all Github APIs, formats JSON, shows response status and headers underneath.
+# Also sends a User-Agent header, because the Github API requires this.
+#
+
+# GET address
+GET http://127.0.0.1:8080/
+
+# POST seed
+POST http://127.0.0.1:8080/seed
+Content-Type: application/json
+{
+        "seed": "army van defense carry jealous true garbage claim echo media make crunch"
+}
+
+# POST mofn
+POST http://127.0.0.1:8080/mofn
+Content-Type: application/json
+{
+        "m": 2,
+        "n": 3,
+        "public_keys": ["03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730", "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9", "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"]
+}
