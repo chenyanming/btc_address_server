@@ -1,5 +1,5 @@
+use crate::error::WalletError;
 use core::convert::TryFrom;
-use thiserror::Error;
 
 /// Push an empty array onto the stack
 pub const OP_PUSHBYTES_0: u8 = 0x00;
@@ -549,12 +549,6 @@ pub const OP_RETURN_255: u8 = 0xff;
 //     };
 // }
 
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("Push Number Exceeds")]
-    NumberOfKeysExceeds,
-}
-
 pub enum OpPushNum {
     Op1,
     Op2,
@@ -575,7 +569,7 @@ pub enum OpPushNum {
 }
 
 impl TryFrom<u8> for OpPushNum {
-    type Error = Error;
+    type Error = WalletError;
     fn try_from(m: u8) -> Result<Self, Self::Error> {
         match m {
             1 => Ok(OpPushNum::Op1),
@@ -594,7 +588,7 @@ impl TryFrom<u8> for OpPushNum {
             14 => Ok(OpPushNum::Op14),
             15 => Ok(OpPushNum::Op15),
             16 => Ok(OpPushNum::Op16),
-            _ => Err(Error::NumberOfKeysExceeds),
+            _ => Err(WalletError::NumberOfKeysExceeds),
         }
     }
 }

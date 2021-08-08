@@ -1,15 +1,48 @@
-use crate::{bech32, opcodes, read_seed};
-use anyhow::{Context, Result};
+use crate::{bech32, error::WalletError, opcodes};
+use anyhow::Result;
 
 use bitvec::prelude::*;
 use core::convert::TryFrom;
 use ring::{digest, pbkdf2};
 use ripemd160::{Digest, Ripemd160};
-use secp256k1::{constants::PUBLIC_KEY_SIZE, Message, PublicKey, Secp256k1, SecretKey};
+use secp256k1::{constants::PUBLIC_KEY_SIZE, PublicKey, Secp256k1, SecretKey};
 use std::fmt::Display;
 use std::num::NonZeroU32;
 
-type PubKey = [u8; PUBLIC_KEY_SIZE];
+use serde::{Deserialize, Serialize};
+
+pub type PubKey = [u8; PUBLIC_KEY_SIZE];
+
+#[derive(Serialize, Deserialize, Debug)]
+// GET Seed from user
+pub struct Seed {
+    seed: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+// Get MofN from user
+pub struct MofN {
+    pub m: u8,
+    pub n: u8,
+    pub public_keys: Vec<String>,
+}
+
+impl Display for Seed {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.seed)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+/// Wallet is the final result presented to user
+pub struct Wallet {
+    address: String,
+}
+impl Wallet {
+    pub fn new(address: String) -> Self {
+        Self { address }
+    }
+}
 
 pub trait Address {
     /// comsume Self and return the address
@@ -121,17 +154,25 @@ mod wallet {
         let address = bs58::encode(&final_result);
         Ok(address.into_string())
     }
+
+    pub fn compare_m_and_n(m: u8, n: u8) -> Result<(), WalletError> {
+        if m <= n {
+            Ok(())
+        } else {
+            Err(WalletError::InvalidM)
+        }
+    }
 }
 
 impl Segwit {
     /// Create a Hierarchical Deterministic (HD) Segregated Witness (SegWit) Bitcoin address from seed
-    pub fn from_seed(seed: &str) -> Result<Self> {
+    pub fn from_seed(seed: &str) -> Self {
         let public_key = wallet::new_public_key(seed, "mnemonic");
-        Ok(Self::new(public_key)?)
+        Self::new(public_key)
     }
 
     /// Create a Hierarchical Deterministic (HD) Segregated Witness (SegWit) Bitcoin address from a public key
-    pub fn new(public_key: PubKey) -> Result<Self> {
+    pub fn new(public_key: PubKey) -> Self {
         // let public_key =
         //     hex::decode("0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798")?;
         let sha256 = digest::digest(&digest::SHA256, &public_key);
@@ -147,7 +188,7 @@ impl Segwit {
             ripemd160.len()
         );
 
-        let mut bv_source: BitArray<Msb0, [u8; 20]> = BitArray::new(ripemd160.into());
+        let bv_source: BitArray<Msb0, [u8; 20]> = BitArray::new(ripemd160.into());
         let mut bv_target: Vec<u8> = vec![];
         for i in 0..32 {
             bv_target.push(bv_source[5 * i..5 * (i + 1)].load_be());
@@ -179,10 +220,10 @@ impl Segwit {
         log::debug!("6. Map each value to its corresponding character in Bech32Chars (qpzry9x8gf2tvdw0s3jn54khce6mua7l) of 5: {}", &witness_map);
 
         let address = "bc".to_string() + &bech32::SEP.to_string() + &witness_map;
-        Ok(Self {
+        Self {
             public_key,
             address,
-        })
+        }
     }
 }
 
@@ -195,6 +236,7 @@ impl Display for Segwit {
 impl Multisig {
     /// Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address
     pub fn new(m: u8, n: u8, public_keys: Vec<PubKey>) -> Result<Self> {
+        let _ = wallet::compare_m_and_n(m, n)?;
         let mut redeem_script = Vec::new();
         redeem_script.extend([u8::from(opcodes::OpPushNum::try_from(m)?)]);
         public_keys.iter().for_each(|key| {
@@ -249,7 +291,6 @@ mod tests {
                     .try_into()
                     .unwrap()
             )
-            .unwrap()
             .to_address(),
             "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string(),
         );
