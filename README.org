@@ -29,6 +29,8 @@ cargo run
 
 Server will be run as [[127.0.0.1:8080][127.0.0.1:8080]].
 
+Run ~cargo test~ to verify all unit tests.
+
 * Examples
 All REST operations are listed below:
 
@@ -87,6 +89,7 @@ For bad requesting, we generate the error as following:
   "error": "N is larger than the total number of public keys"
 }
 #+end_src
+
 
 * License
 MIT license
