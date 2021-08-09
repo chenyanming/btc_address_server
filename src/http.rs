@@ -2,7 +2,7 @@ use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 // use std::convert::Infallible;
 // use std::net::SocketAddr;
-use crate::wallet::{Address, MofN, Multisig, PubKey, Seed, Segwit, Wallet};
+use crate::wallet::{MofN, Multisig, PubKey, Seed, Segwit, Wallet};
 use anyhow::Result;
 use std::convert::TryInto;
 
@@ -19,8 +19,7 @@ async fn router(req: Request<Body>) -> Result<Response<Body>> {
             log::info!("{}", body);
             match serde_json::from_str::<Seed>(&body) {
                 Ok(v) => {
-                    let segwit = Segwit::from_seed(&v.to_string());
-                    let wallet = Wallet::new(segwit.to_address());
+                    let wallet = Segwit::seed(&v.to_string()).finalize();
                     Ok(Response::new(
                         serde_json::to_string(&wallet).unwrap().into(),
                     ))
@@ -46,10 +45,11 @@ async fn router(req: Request<Body>) -> Result<Response<Body>> {
                         .collect::<Result<Vec<PubKey>>>();
                     match public_keys {
                         Ok(keys) => {
-                            let multisig = Multisig::new(v.m, v.n, keys);
+                            let multisig =
+                                Multisig::m(v.m).n(v.n).public_keys(keys).generate_address();
                             match multisig {
                                 Ok(multisig) => {
-                                    let wallet = Wallet::new(multisig.to_address());
+                                    let wallet = multisig.finalize();
                                     Ok(Response::new(
                                         serde_json::to_string(&wallet).unwrap().into(),
                                     ))

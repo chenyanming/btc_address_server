@@ -53,6 +53,7 @@ Content-Type: application/json
 
 # Result
 {
+  "public_key": "031507acb2211091ea30c6ab959dfe0ec01fde80d272fa4070995df56958ee6ae6",
   "address": "bc1qx0g5ltavjlkh4ywfnqr7qr4u9qxfw0jmsnj2zt"
 }
 #+end_src
@@ -72,9 +73,9 @@ Content-Type: application/json
 
 # Result
 {
+  "public_key": "",
   "address": "38TN2ejJLXnxnDE8wbj6U6RrYSQhsLH41V"
 }
-
 #+end_src
 
 * License
