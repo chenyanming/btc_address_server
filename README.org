@@ -11,6 +11,7 @@
   - [[#post-seed-and-get-the-hd-segwit-address][Post seed and get the HD segwit address]]
   - [[#post-m-n-and-public_keys-and-get-the-multisig-p2sh-address][Post m, n, and public_keys and get the multisig p2sh address]]
   - [[#bad-request-400][BAD REQUEST (400)]]
+- [[#test-server][Test Server]]
 - [[#license][License]]
 
 * Description
@@ -45,6 +46,7 @@ Welcome to bitcoin address server
 #+end_src
 
 ** Post seed and get the HD segwit address
+
 #+begin_src sh
 
 # POST
@@ -90,6 +92,20 @@ For bad requesting, we generate the error as following:
 }
 #+end_src
 
+* Test Server
+A test server is built - https://btcaddress.herokuapp.com/, feel free to test :)
+
+#+begin_src sh
+curl https://btcaddress.herokuapp.com/
+#+end_src
+
+#+begin_src sh
+curl -X POST -H "Content-Type: application/json" -d '{"seed": "army van defense carry jealous true garbage claim echo media make crunch"}' https://btcaddress.herokuapp.com/seed
+#+end_src
+
+#+begin_src sh
+curl -X POST -H "Content-Type: application/json" -d '{"m": 2, "n": 3, "public_keys": ["03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730", "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9", "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"]}' https://btcaddress.herokuapp.com/mofn
+#+end_src
 
 * License
 MIT license
