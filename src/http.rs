@@ -89,7 +89,7 @@ pub async fn start_http_server() -> Result<(), Box<dyn std::error::Error + Send 
     // Get the port number to listen on (required for heroku deployment).
     let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
 
-    let addr = ([127, 0, 0, 1], port.parse()?).into();
+    let addr = ([0, 0, 0, 0], port.parse()?).into();
 
     let server = Server::bind(&addr).serve(make_svc);
 
