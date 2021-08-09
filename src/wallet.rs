@@ -13,13 +13,13 @@ use serde::{Deserialize, Serialize};
 
 pub type PubKey = [u8; PUBLIC_KEY_SIZE];
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 // GET Seed from user
 pub struct Seed {
     seed: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 // Get MofN from user
 pub struct MofN {
     pub m: u8,
@@ -33,7 +33,7 @@ impl Display for Seed {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 /// Wallet is the final result presented to user
 pub struct Wallet {
     public_key: String,
@@ -239,7 +239,7 @@ impl Multisig {
             0 => Err(WalletError::EmptyN),
             v if v > self.public_keys.len() as u8 => Err(WalletError::LargeN),
             v if v < self.public_keys.len() as u8 => Err(WalletError::InvalidN),
-            v => Ok(self),
+            _ => Ok(self),
         }
     }
 

@@ -2,7 +2,7 @@ use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 // use std::convert::Infallible;
 // use std::net::SocketAddr;
-use crate::wallet::{MofN, Multisig, PubKey, Seed, Segwit, Wallet};
+use crate::wallet::{MofN, Multisig, PubKey, Seed, Segwit};
 use anyhow::Result;
 use std::convert::TryInto;
 
@@ -24,7 +24,7 @@ async fn router(req: Request<Body>) -> Result<Response<Body>> {
                         serde_json::to_string(&wallet).unwrap().into(),
                     ))
                 }
-                Err(e) => Ok(Response::new(e.to_string().into())),
+                Err(e) => bad_request(e.to_string()),
             }
         }
         (&Method::POST, "/mofn") => {
@@ -54,13 +54,13 @@ async fn router(req: Request<Body>) -> Result<Response<Body>> {
                                         serde_json::to_string(&wallet).unwrap().into(),
                                     ))
                                 }
-                                Err(e) => Ok(Response::new(e.to_string().into())),
+                                Err(e) => bad_request(e.to_string()),
                             }
                         }
-                        Err(e) => Ok(Response::new(e.to_string().into())),
+                        Err(e) => bad_request(e.to_string()),
                     }
                 }
-                Err(e) => Ok(Response::new(e.to_string().into())),
+                Err(e) => bad_request(e.to_string()),
             }
         }
         _ => four_oh_four(),
@@ -74,6 +74,17 @@ fn four_oh_four() -> Result<Response<Body>> {
         .body(body)
         .map_err(|e| anyhow::Error::msg(e))
 }
+
+fn bad_request(v: String) -> Result<Response<Body>> {
+    let body = Body::from(serde_json::json!({
+            "error": v
+        }).to_string());
+    Response::builder()
+        .status(StatusCode::BAD_REQUEST)
+        .body(body)
+        .map_err(|e| anyhow::Error::msg(e))
+}
+
 
 pub async fn start_http_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // For every connection, we must make a `Service` to handle all

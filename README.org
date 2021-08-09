@@ -10,6 +10,7 @@
   - [[#get-the-welcome-message][Get the welcome message]]
   - [[#post-seed-and-get-the-hd-segwit-address][Post seed and get the HD segwit address]]
   - [[#post-m-n-and-public_keys-and-get-the-multisig-p2sh-address][Post m, n, and public_keys and get the multisig p2sh address]]
+  - [[#bad-request-400][BAD REQUEST (400)]]
 - [[#license][License]]
 
 * Description
@@ -75,6 +76,15 @@ Content-Type: application/json
 {
   "public_key": "",
   "address": "38TN2ejJLXnxnDE8wbj6U6RrYSQhsLH41V"
+}
+#+end_src
+
+** BAD REQUEST (400)
+For bad requesting, we generate the error as following:
+#+begin_src sh
+# error
+{
+  "error": "N is larger than the total number of public keys"
 }
 #+end_src
 
