@@ -5,6 +5,7 @@ use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use crate::wallet::{MofN, Multisig, PubKey, Seed, Segwit};
 use anyhow::Result;
 use std::convert::TryInto;
+use std::env;
 
 static NOTFOUND: &[u8] = b"Oops! Not Found";
 
@@ -85,8 +86,10 @@ pub async fn start_http_server() -> Result<(), Box<dyn std::error::Error + Send 
         // returns a Response into a `Service`.
         async { Ok::<_, anyhow::Error>(service_fn(router)) }
     });
+    // Get the port number to listen on (required for heroku deployment).
+    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
 
-    let addr = ([127, 0, 0, 1], 80).into();
+    let addr = ([127, 0, 0, 1], port.parse()?).into();
 
     let server = Server::bind(&addr).serve(make_svc);
 
