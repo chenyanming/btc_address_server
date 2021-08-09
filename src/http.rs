@@ -86,7 +86,7 @@ pub async fn start_http_server() -> Result<(), Box<dyn std::error::Error + Send 
         async { Ok::<_, anyhow::Error>(service_fn(router)) }
     });
 
-    let addr = ([127, 0, 0, 1], 8080).into();
+    let addr = ([127, 0, 0, 1], 80).into();
 
     let server = Server::bind(&addr).serve(make_svc);
 
