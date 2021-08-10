@@ -1,12 +1,11 @@
 use actix_web::{
-    error, get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result,
+    error, get, post, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder, Result,
 };
 
-use actix_web::http::{header, Method, StatusCode};
-use actix_web::web::Bytes;
-
+use crate::handlers;
+use crate::models;
 use crate::wallet::{MofN, Multisig, PubKey, Seed, Segwit};
-// use crate::handlers;
+
 use std::convert::TryInto;
 
 use diesel::prelude::*;
@@ -20,26 +19,26 @@ pub async fn start_http_server() -> Result<(), std::io::Error> {
 
     let addr = format!("0.0.0.0:{}", port);
 
-    // let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://postgres:ming@localhost/btc_address_server?sslmode=disable".to_string());
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+        "postgres://postgres:ming@localhost/btc_address_server?sslmode=disable".to_string()
+    });
 
     // create db connection pool
-    // let manager = ConnectionManager::<PgConnection>::new(database_url);
-    // let pool: Pool = r2d2::Pool::builder()
-    //     .build(manager)
-    //     .expect("Failed to create pool.");
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
+    let pool: Pool = r2d2::Pool::builder()
+        .build(manager)
+        .expect("Failed to create pool.");
 
     HttpServer::new(move || {
         App::new()
-            // .data(pool.clone())
+            .data(pool.clone())
             .service(index)
             .service(post_seed)
             .service(post_mofn)
+            .service(handlers::get_user_by_id)
         // .route("/users", web::get().to(handlers::get_users))
-        // .route("/users/{id}", web::get().to(handlers::get_user_by_id))
         // .route("/users", web::post().to(handlers::add_user))
         // .route("/users/{id}", web::delete().to(handlers::delete_user))
-        // .route("/seed", web::post().to(handlers::post_seed))
-        // .route("/mofn", web::post().to(handlers::post_mofn))
     })
     .bind(addr)?
     .run()
