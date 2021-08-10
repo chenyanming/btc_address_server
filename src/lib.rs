@@ -9,9 +9,8 @@ pub mod wallet;
 extern crate diesel;
 
 // pub mod handlers;
-pub mod schema;
 pub mod models;
-
+pub mod schema;
 
 use std::fs::read_to_string;
 
