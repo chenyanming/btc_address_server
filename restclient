@@ -10,6 +10,9 @@ GET http://127.0.0.1:8080/
 # GET address NOT FOUND
 GET http://127.0.0.1:8080/hello
 
+# GET address NOT FOUND
+GET http://127.0.0.1:8080/user/1
+
 # POST seed
 POST http://127.0.0.1:8080/seed
 Content-Type: application/json
