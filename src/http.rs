@@ -36,9 +36,9 @@ pub async fn start_http_server() -> Result<(), std::io::Error> {
             .service(post_seed)
             .service(post_mofn)
             .service(handlers::get_user_by_id)
+            .service(handlers::add_user)
+            .service(handlers::delete_user)
         // .route("/users", web::get().to(handlers::get_users))
-        // .route("/users", web::post().to(handlers::add_user))
-        // .route("/users/{id}", web::delete().to(handlers::delete_user))
     })
     .bind(addr)?
     .run()
