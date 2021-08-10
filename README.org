@@ -6,8 +6,13 @@
 - [[#description][Description]]
 - [[#features][Features]]
 - [[#configuration][Configuration]]
+  - [[#requirement][Requirement]]
+  - [[#setup-postgresql-and-diesel][Setup postgresql and diesel]]
+  - [[#run][Run]]
+  - [[#test][Test]]
 - [[#examples][Examples]]
   - [[#get-the-welcome-message][Get the welcome message]]
+  - [[#get-user-by-id][Get user by id]]
   - [[#post-seed-and-get-the-hd-segwit-address][Post seed and get the HD segwit address]]
   - [[#post-m-n-and-public_keys-and-get-the-multisig-p2sh-address][Post m, n, and public_keys and get the multisig p2sh address]]
   - [[#bad-request-400][BAD REQUEST (400)]]
@@ -22,14 +27,28 @@ Bitcoin address generation server
 1. Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address, where n, m and public keys can be specified
 
 * Configuration
+** Requirement
 Rust stable ~1.54~
+Postgresql 13
 
+** Setup postgresql and diesel
+#+begin_src sh
+cargo install diesel_cli --no-default-features --features postgres
+brew install postgresql 
+brew services start postgresql
+# Adjust the account and password in .env
+# Then under project root to create the database - btc_address_server
+diesel setup
+#+end_src
+
+** Run
 #+begin_src rust
 cargo run
 #+end_src
 
 Server will be run as [[127.0.0.1:8080][127.0.0.1:8080]].
 
+** Test
 Run ~cargo test~ to verify all unit tests.
 
 * Examples
@@ -43,6 +62,13 @@ GET http://127.0.0.1:8080/
 
 # Result
 Welcome to bitcoin address server
+#+end_src
+
+** Get user by id
+#+begin_src sh
+# GET
+GET http://127.0.0.1:8080/user/1
+
 #+end_src
 
 ** Post seed and get the HD segwit address
