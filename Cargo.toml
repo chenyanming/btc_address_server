@@ -10,10 +10,12 @@ edition = "2018"
 
 log = "0.4.14"
 env_logger = "0.9.0"
-chrono = "0.4.19"
+chrono = {version = "0.4.19", features = ["serde"] }
 tokio = {version = "1", features = ["full"]}
 anyhow = "1.0.42"
 hyper = { version = "0.14", features = ["full"] }
+actix-web = "4.0.0-beta.8"
+diesel = { version = "1.4.7", features = ["r2d2", "postgres", "chrono"] }
 ring = "0.16.20"
 hex = "0.4.3"
 secp256k1 = "0.20.3"
