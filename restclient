@@ -11,7 +11,7 @@ GET http://127.0.0.1:8080/
 GET http://127.0.0.1:8080/hello
 
 # GET user 5
-GET http://127.0.0.1:8080/user/5
+GET http://127.0.0.1:8080/user/7
 
 # POST seed
 POST http://127.0.0.1:8080/seed
@@ -35,7 +35,7 @@ POST http://127.0.0.1:8080/user
 Content-Type: application/json
 {
     "first_name": "hello",
-    "last_name": "worldd",
+    "last_name": "world",
     "email": "hello@world.com"
 }
 
