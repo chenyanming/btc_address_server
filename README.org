@@ -7,15 +7,24 @@
 - [[#features][Features]]
 - [[#configuration][Configuration]]
   - [[#requirement][Requirement]]
-  - [[#setup-postgresql-and-diesel][Setup postgresql and diesel]]
-  - [[#run][Run]]
+  - [[#start-the-server-without-postgresql-support][Start the server without postgresql support]]
+    - [[#setup-env][Setup .env]]
+    - [[#start-the-server][Start the server]]
+  - [[#start-the-server-with-postgresql-support][Start the server with postgresql support]]
+    - [[#install-postgresql-and-diesel][Install postgresql and diesel]]
+    - [[#setup-env-1][Setup .env]]
+    - [[#setup-diesel][Setup diesel]]
+    - [[#start-the-server-1][Start the server]]
   - [[#test][Test]]
 - [[#examples][Examples]]
-  - [[#get-the-welcome-message][Get the welcome message]]
-  - [[#get-user-by-id][Get user by id]]
-  - [[#post-seed-and-get-the-hd-segwit-address][Post seed and get the HD segwit address]]
-  - [[#post-m-n-and-public_keys-and-get-the-multisig-p2sh-address][Post m, n, and public_keys and get the multisig p2sh address]]
-  - [[#bad-request-400][BAD REQUEST (400)]]
+  - [[#general-operations][General Operations]]
+    - [[#get-the-welcome-message][Get the welcome message]]
+    - [[#post-seed-and-get-the-hd-segwit-address][Post seed and get the HD segwit address]]
+    - [[#post-m-n-and-public_keys-and-get-the-multisig-p2sh-address][Post m, n, and public_keys and get the multisig p2sh address]]
+  - [[#optional-operations-if-postgres-feature-is-enabled][Optional Operations if ~postgres~ feature is enabled]]
+    - [[#get-a-user-by-id][GET a user by id]]
+    - [[#post-a-user][POST a user]]
+  - [[#delete-a-user][DELETE a user]]
 - [[#test-server][Test Server]]
 - [[#license][License]]
 
@@ -29,54 +38,92 @@ Bitcoin address generation server
 * Configuration
 ** Requirement
 Rust stable ~1.54~
-Postgresql 13
+Optional: Postgresql 13, if ~postgres~ feature is enabled
 
-** Setup postgresql and diesel
+** Start the server without postgresql support
+*** Setup .env
+Add PORT setting if you like, default is ~8080~.
 #+begin_src sh
-cargo install diesel_cli --no-default-features --features postgres
-brew install postgresql 
-brew services start postgresql
-# Adjust the account and password in .env
-# Then under project root to create the database - btc_address_server
-diesel setup
+PORT=8080
 #+end_src
 
-** Run
+This project use ~JWT~ as authentication layer, please add a valid ~AUTHORITY~ in ~.env~, e.g.
+
+#+begin_src 
+AUTHORITY=https://example.com/
+#+end_src
+
+PS: For easy testing, default AUTHORITY is set as https://dev-babm2h9u.us.auth0.com/. Please do
+not use it abusively!
+
+*** Start the server
 #+begin_src rust
 cargo run
 #+end_src
+Server will be running as [[127.0.0.1:8080][127.0.0.1:8080]].
 
-Server will be run as [[127.0.0.1:8080][127.0.0.1:8080]].
+** Start the server with postgresql support
+This project provides a feature that uses postgresql as a database backend. In order to use enable it,
+follow the below steps to setup:
+
+*** Install postgresql and diesel
+#+begin_src sh
+brew install postgresql 
+brew services start postgresql
+#+end_src
+
+*** Setup .env
+Add PORT setting if you like, default is ~8080~.
+#+begin_src sh
+PORT=8080
+#+end_src
+
+Add a valid  ~DATABASE_URL~ in ~.env~, e.g.
+#+begin_src sh
+DATABASE_URL=postgres://account:password/btc_address_server?sslmode=disable
+#+end_src
+
+*** Setup diesel
+1. Install diesel_cli
+    #+begin_src sh
+    cargo install diesel_cli --no-default-features --features postgres
+    #+end_src
+
+2. Change path to project root, create the database - btc_address_server with
+    #+begin_src sh
+    diesel setup
+    #+end_src
+
+*** Start the server
+#+begin_src sh
+cargo run --features postgres
+#+end_src
+
+Server will be running as [[127.0.0.1:8080][127.0.0.1:8080]].
 
 ** Test
 Run ~cargo test~ to verify all unit tests.
 
 * Examples
 All REST operations are listed below:
+** General Operations
+Suppose ~$TOKEN~ is a valid ~JWT~ token.
 
-** Get the welcome message
+*** Get the welcome message
 #+begin_src sh
-
 # GET
 GET http://127.0.0.1:8080/
+Authorization: Bearer $TOKEN
 
 # Result
 Welcome to bitcoin address server
 #+end_src
 
-** Get user by id
+*** Post seed and get the HD segwit address
 #+begin_src sh
-# GET
-GET http://127.0.0.1:8080/user/1
-
-#+end_src
-
-** Post seed and get the HD segwit address
-
-#+begin_src sh
-
 # POST
 POST http://127.0.0.1:8080/seed
+Authorization: Bearer $TOKEN
 Content-Type: application/json
 {
         "seed": "army van defense carry jealous true garbage claim echo media make crunch"
@@ -89,12 +136,11 @@ Content-Type: application/json
 }
 #+end_src
 
-
-** Post m, n, and public_keys and get the multisig p2sh address
+*** Post m, n, and public_keys and get the multisig p2sh address
 #+begin_src sh
-
 # POST
 POST http://127.0.0.1:8080/mofn
+Authorization: Bearer $TOKEN
 Content-Type: application/json
 {
         "m": 2,
@@ -109,28 +155,48 @@ Content-Type: application/json
 }
 #+end_src
 
-** BAD REQUEST (400)
-For bad requesting, we generate the error as following:
+** Optional Operations if ~postgres~ feature is enabled
+*** GET a user by id
 #+begin_src sh
-# error
+# GET user 
+GET http://127.0.0.1:8080/user/1
+Authorization: Bearer $TOKEN
+
+#+end_src
+
+*** POST a user
+Create a user:
+#+begin_src sh
+# POST user
+POST http://127.0.0.1:8080/user
+Authorization: Bearer $TOKEN
+Content-Type: application/json
 {
-  "error": "N is larger than the total number of public keys"
+    "first_name": "hello",
+    "last_name": "world",
+    "email": "hello@world.com"
 }
 #+end_src
 
+** DELETE a user
+#+begin_src sh
+# DELETE user 6
+DELETE http://127.0.0.1:8080/user/6
+#+end_src
+
 * Test Server
-A test server is built - https://btcaddress.herokuapp.com/, feel free to test :)
+A test server without postgres feature is built - https://btcaddress.herokuapp.com/, feel free to test :)
 
 #+begin_src sh
 curl https://btcaddress.herokuapp.com/
 #+end_src
 
 #+begin_src sh
-curl -X POST -H "Content-Type: application/json" -d '{"seed": "army van defense carry jealous true garbage claim echo media make crunch"}' https://btcaddress.herokuapp.com/seed
+curl -X POST -H "Content-Type: application/json" -H "authorization: Bearer $TOKEN" -d '{"seed": "army van defense carry jealous true garbage claim echo media make crunch"}' https://btcaddress.herokuapp.com/seed
 #+end_src
 
 #+begin_src sh
-curl -X POST -H "Content-Type: application/json" -d '{"m": 2, "n": 3, "public_keys": ["03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730", "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9", "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"]}' https://btcaddress.herokuapp.com/mofn
+curl -X POST -H "Content-Type: application/json" -H "authorization: Bearer $TOKEN" -d '{"m": 2, "n": 3, "public_keys": ["03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730", "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9", "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"]}' https://btcaddress.herokuapp.com/mofn
 #+end_src
 
 * License
