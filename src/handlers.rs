@@ -40,7 +40,7 @@ pub struct InputUser {
 #[get("/user/{id}")]
 async fn get_user_by_id(
     pool: web::Data<Pool>,
-    id: web::Path<u32>,
+    id: web::Path<i32>,
 ) -> std::result::Result<HttpResponse, Error> {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
@@ -60,11 +60,11 @@ async fn get_user_by_id(
 }
 /// Run query using Diesel to find user by uid and return it.
 pub fn find_user_by_id(
-    id: u32,
+    user_id: i32,
     conn: &PgConnection,
 ) -> Result<models::User, diesel::result::Error> {
     use crate::schema::users::dsl::*;
-    users.find(id).get_result::<models::User>(conn)
+    users.find(user_id).get_result::<models::User>(conn)
 }
 
 // Handler for POST /user
@@ -99,8 +99,8 @@ fn add_single_user(
 }
 
 // Handler for DELETE /user/{id}
-#[delete("/users/{id}")]
-pub async fn delete_user(pool: web::Data<Pool>, id: web::Path<u32>) -> Result<HttpResponse, Error> {
+#[delete("/user/{id}")]
+pub async fn delete_user(pool: web::Data<Pool>, id: web::Path<i32>) -> Result<HttpResponse, Error> {
     let id = id.into_inner();
     let conn = pool.get().expect("couldn't get db connection from pool");
     let user = web::block(move || delete_single_user(id, &conn))
@@ -116,8 +116,8 @@ pub async fn delete_user(pool: web::Data<Pool>, id: web::Path<u32>) -> Result<Ht
     }
 }
 
-fn delete_single_user(id: u32, conn: &PgConnection) -> Result<usize, diesel::result::Error> {
+fn delete_single_user(user_id: i32, conn: &PgConnection) -> Result<usize, diesel::result::Error> {
     use crate::schema::users::dsl::*;
-    let count = delete(users.find(id)).execute(conn)?;
+    let count = delete(users.find(user_id)).execute(conn)?;
     Ok(count)
 }
