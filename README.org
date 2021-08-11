@@ -33,12 +33,17 @@ Bitcoin address generation server
 
 * Features
 1. Generate the public key and a Hierarchical Deterministic (HD) Segregated Witness (SegWit) bitcoin address from the loaded seed and given path.
-1. Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address, where n, m and public keys can be specified
+2. Generate an n-out-of-m Multisignature (multi-sig) Pay-To-Script-Hash (P2SH) bitcoin address, where n, m and public keys can be specified
+3. REST API support
+4. Strong Type and Errors Reports (Using [[https://github.com/actix/actix-web][actix-web]])
+5. Secure the API with [[https://en.wikipedia.org/wiki/JSON_Web_Token][JWT]]
+6. Optional: Postgresql database support
+6. Optional: Test Server is provided, ask me the token if you want to test
 
 * Configuration
 ** Requirement
-Rust stable ~1.54~
-Optional: Postgresql 13, if ~postgres~ feature is enabled
+- Rust stable ~1.54~
+- Optional: Postgresql 13, if ~postgres~ feature is enabled
 
 ** Start the server without postgresql support
 *** Setup .env
