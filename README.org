@@ -52,7 +52,7 @@ Add PORT setting if you like, default is ~8080~.
 PORT=8080
 #+end_src
 
-This project use ~JWT~ as authentication layer, please add a valid ~AUTHORITY~ in ~.env~, e.g.
+This project use ~JWT~ as authentication method, please add a valid ~AUTHORITY~ in ~.env~, e.g.
 
 #+begin_src 
 AUTHORITY=https://example.com/
@@ -68,8 +68,8 @@ cargo run
 Server will be running as [[127.0.0.1:8080][127.0.0.1:8080]].
 
 ** Start the server with postgresql support
-This project provides a feature that uses postgresql as a database backend. In order to use enable it,
-follow the below steps to setup:
+This project provides a feature that uses postgresql as a database backend. In order to enable
+it, follow the below steps to setup:
 
 *** Install postgresql and diesel
 #+begin_src sh
@@ -87,6 +87,15 @@ Add a valid  ~DATABASE_URL~ in ~.env~, e.g.
 #+begin_src sh
 DATABASE_URL=postgres://account:password/btc_address_server?sslmode=disable
 #+end_src
+
+This project use ~JWT~ as authentication method, please add a valid ~AUTHORITY~ in ~.env~, e.g.
+
+#+begin_src 
+AUTHORITY=https://example.com/
+#+end_src
+
+PS: For easy testing, default AUTHORITY is set as https://dev-babm2h9u.us.auth0.com/. Please do
+not use it abusively!
 
 *** Setup diesel
 1. Install diesel_cli
