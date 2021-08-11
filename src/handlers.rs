@@ -58,6 +58,7 @@ async fn get_user_by_id(
         }
     }
 }
+
 /// Run query using Diesel to find user by uid and return it.
 pub fn find_user_by_id(
     user_id: i32,

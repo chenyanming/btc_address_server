@@ -11,11 +11,15 @@ edition = "2018"
 log = "0.4.14"
 env_logger = "0.9.0"
 chrono = {version = "0.4.19", features = ["serde"] }
-tokio = {version = "1", features = ["full"]}
 anyhow = "1.0.42"
 actix-web = "=4.0.0-beta.5"
 actix-service = "=2.0.0-beta.5"
-diesel = { version = "1.4.7", features = ["r2d2", "postgres", "chrono"] }
+actix-web-httpauth = "=0.6.0-beta.1"
+jsonwebtoken = "7"
+alcoholic_jwt = "1"
+actix-rt = "2.2.0"
+reqwest = {version = "0.11.4", features = ["json"] }
+diesel = { version = "1.4.7", optional = true }
 ring = "0.16.20"
 hex = "0.4.3"
 secp256k1 = "0.20.3"
@@ -27,3 +31,8 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 r2d2 = "0.8"
 
+[features]
+
+default = []
+
+postgres = ["diesel/r2d2", "diesel/postgres", "diesel/chrono"]
