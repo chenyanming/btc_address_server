@@ -10,8 +10,8 @@ GET http://127.0.0.1:8080/
 # GET address NOT FOUND
 GET http://127.0.0.1:8080/hello
 
-# GET address NOT FOUND
-GET http://127.0.0.1:8080/user/1
+# GET user 5
+GET http://127.0.0.1:8080/user/5
 
 # POST seed
 POST http://127.0.0.1:8080/seed
@@ -28,3 +28,16 @@ Content-Type: application/json
         "n": 3,
         "public_keys": ["03d728ad6757d4784effea04d47baafa216cf474866c2d4dc99b1e8e3eb936e730", "03aeb681df5ac19e449a872b9e9347f1db5a0394d2ec5caf2a9c143f86e232b0d9", "02d83bba35a8022c247b645eed6f81ac41b7c1580de550e7e82c75ad63ee9ac2fd"]
 }
+
+
+# POST user
+POST http://127.0.0.1:8080/user
+Content-Type: application/json
+{
+    "first_name": "hello",
+    "last_name": "worldd",
+    "email": "hello@world.com"
+}
+
+# DELETE user 6
+DELETE http://127.0.0.1:8080/user/6
