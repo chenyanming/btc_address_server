@@ -187,8 +187,10 @@ DELETE http://127.0.0.1:8080/user/6
 * Test Server
 A test server without postgres feature is built - https://btcaddress.herokuapp.com/, feel free to test :)
 
+Suppose ~$TOKEN~ is a valid ~JWT~ token.
+
 #+begin_src sh
-curl https://btcaddress.herokuapp.com/
+curl https://btcaddress.herokuapp.com/ -H "authorization: Bearer $TOKEN"  
 #+end_src
 
 #+begin_src sh
